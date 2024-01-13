@@ -1,2 +1,10 @@
 dictionary_char_2023-12-19.jsonl
 dictionary_word_2023-12-19.jsonl
+jp/combined_jp.json
+jp/jmnedict-all-3.5.0.json
+jp/jmdict-eng-3.5.0.json
+jp/output/jmdict.json
+jp/output/jmnedict_min.json
+jp/output/index.json
+jp/output/jmnedict.json
+.vscode/

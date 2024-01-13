@@ -20,52 +20,67 @@ const util = require('util');
 	})
 
 
-	// client.collections('cedict').delete()
-	// 	.then(response => {
-	// 		console.log("Collection deleted:", response);
-	// 	})
-	// 	.catch(error => {
-	// 		console.error("Error deleting collection:", error);
-	// 	});
+	await client.collections('dictionary').delete()
+		.then(response => {
+			console.log("Collection deleted:", response);
+		})
+		.catch(error => {
+			console.error("Error deleting collection:", error);
+		});
 
 
-	// let cedictSchema = {
-	// 	'name': 'cedict',
-	// 	'fields': [
-	// 		{ 'name': 't', 'type': 'string', "infix": true },
-	// 		{ 'name': 's', 'type': 'string', "infix": true },
-	// 		{ 'name': 'p', 'type': 'string', "infix": true },
-	// 		{ 'name': 'd', 'type': 'string', "infix": true } // Changed to a single string
+	// let schema = {
+	// 	"name": "dictionary",
+	// 	"enable_nested_fields": true,
+	// 	"fields": [
+	// 		{ "name": "w_s", "type": "string", "infix": true },
+	// 		{ "name": "w_t", "type": "string", "infix": true },
+	// 		{ "name": "w_p", "type": "string[]", "infix": true },
+	// 		{ "name": "w_d", "type": "string[]", "infix": true }
 	// 	]
-	// };
-	// client.collections().create(cedictSchema)
-	// 	.then(response => {
-	// 		console.log("Collection created:", response);
-	// 	})
-	// 	.catch(error => {
-	// 		console.error("Error creating collection:", error);
-	// 	});
+	// }
+	let schema = {
+		"name": "dictionary",
+		"enable_nested_fields": true,
+		"fields": [
+			{ "name": "w_s", "type": "string", "infix": true, "optional": true },
+			{ "name": "w_t", "type": "string", "infix": true, "optional": true },
+			{ "name": "w_p", "type": "string[]", "infix": true, "optional": true },
+			{ "name": "w_d", "type": "string[]", "infix": true, "optional": true },
+			{ "name": "c_t", "type": "string", "infix": true, "optional": true }, // Traditional character
+			{ "name": "c_s", "type": "string[]", "infix": true, "optional": true }, // Simplified variants
+			{ "name": "c_g", "type": "string[]", "infix": true, "optional": true }, // Glosses
+			{ "name": "c_p", "type": "string[]", "infix": true, "optional": true }, // Pinyin
+			{ "name": "c_v", "type": "string[]", "infix": true, "optional": true }  // Other variants
+		]
+	}
 
+	await client.collections().create(schema)
+		.then(response => {
+			console.log("Collection created:", response);
+		})
+		.catch(error => {
+			console.error("Error creating collection:", error);
+		});
 
+	var fs = require('fs/promises');
 
-	// var fs = require('fs/promises');
+	const data = await fs.readFile("all_data.jsonl");
+	// // client.collections('cedict').documents().import(cedictData);
 
-	// const cedictData = await fs.readFile("output.jsonl");
-	// // // client.collections('cedict').documents().import(cedictData);
+	// // Example: Assuming 'documents' is your array of documents
+	// // cedictData.forEach(document => {
+	// // 	document.d = document.d.join("/");
+	// // });
 
-	// // // Example: Assuming 'documents' is your array of documents
-	// // // cedictData.forEach(document => {
-	// // // 	document.d = document.d.join("/");
-	// // // });
-
-	// // Now import these documents into Typesense
-	// client.collections('cedict').documents().import(cedictData)
-	// 	.then(response => {
-	// 		console.log("Documents imported:", response);
-	// 	})
-	// 	.catch(error => {
-	// 		console.error("Error importing documents:", error);
-	// 	});
+	// Now import these documents into Typesense
+	await client.collections('dictionary').documents().import(data)
+		.then(response => {
+			console.log("Documents imported:", response);
+		})
+		.catch(error => {
+			console.error("Error importing documents:", error);
+		});
 
 
 	let searchParameters = {
@@ -75,7 +90,7 @@ const util = require('util');
 		'per_page': 50,
 		'infix': 'always'
 	};
-	client.collections('cedict')
+	await client.collections('dictionary')
 		.documents()
 		.search(searchParameters)
 		.then(function (searchResults) {
