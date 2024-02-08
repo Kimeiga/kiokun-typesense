@@ -61,7 +61,7 @@ curl -X POST \
 echo "Importing documents..."
 curl -X POST \
      -H "X-TYPESENSE-API-KEY: $TYPESENSE_API_KEY" \
-     --data-binary @all_data2.jsonl \
+     --data-binary @all_data.jsonl \
      "$TYPESENSE_HOST/collections/dictionary/documents/import"
 
 echo "Import complete."

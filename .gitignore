@@ -9,7 +9,7 @@ jp/output/index.json
 jp/output/jmnedict.json
 .vscode/
 animCJK/
-all_data2.jsonl
+all_data.jsonl
 all_data.jsonl
 jp/jmdict-entries.json
 jp/furigana.json
@@ -29,9 +29,8 @@ zh/dictionary_word_2023-12-19.jsonl
 output/search_data_min.json
 output/search_data.json
 output/search_data_min.jsonl
-node_modules
-node_modules
-all_data2.jsonl
+node_modules/
+all_data.jsonl
 all_data.jsonl
 index_key_search.jsonl
 jp/jmdict-entries.json
@@ -60,4 +59,4 @@ zh/dictionary_word_2023-12-19.jsonl
 output/search_data_min.json
 output/search_data.json
 output/search_data_min.jsonl
-all_data.json
+package-lock.json

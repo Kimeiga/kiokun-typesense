@@ -56,7 +56,7 @@ import json
 
 import json
 
-with open("all_data2.jsonl", "r", encoding="utf-8") as file:
+with open("all_data.jsonl", "r", encoding="utf-8") as file:
     for line in file:
         entry = json.loads(line)
         if 'k' in entry:

@@ -9,7 +9,10 @@ from collections import defaultdict
 # this script can prepare the
 
 import re
+# import pykakasi
 
+# kks = pykakasi.kakasi()
+import romkan
 # Mapping of Pinyin tone marks to tone numbers and unmarked vowels
 pinyin_tone_mapping = {
     "ā": ("a", "1"),
@@ -70,12 +73,14 @@ with open(file_path, "r", encoding="utf-8") as file:
 
         items_dict = {}
         for item in data["items"]:
+            if 'definitions' not in item:
+                continue
             pinyin = convert_pinyin(item.get("pinyin", ""))
-            if pinyin in items_dict:
-                items_dict[pinyin] += "/" + \
-                    ("/".join(item.get("definitions", [])))
+            if pinyin in items_dict and items_dict[pinyin] != "":
+                items_dict[pinyin] += "; " + \
+                    ("; ".join(item.get("definitions", [])))
             else:
-                items_dict[pinyin] = "/".join(item.get("definitions", []))
+                items_dict[pinyin] = "; ".join(item.get("definitions", []))
 
         # new_items = []
         # for item in data["items"]:
@@ -123,81 +128,6 @@ with open(file_path, "r", encoding="utf-8") as file:
 
         char_mapping[data["char"]] = data
 
-        # if "gloss" not in data:
-        #     print(data)
-
-        # if "pinyinFrequencies" in data and "pinyin" not in data["pinyinFrequencies"][0]:
-        #     print(data)
-
-        # If this entry is for a simplified character, it will have a tradVariants array
-        # For each of those tradVariants, make an entry in entries where the key is the tradVariant
-        # and the value is the entry where we populate c_s as the simplified character and c_t as the tradVariant
-        # If there already exists a key in entries for the tradVariant, it means that we processed the traditional character first
-
-        # If this entry is for a traditional character, it will have a simpVariants array
-        # For each of those simpVariants, make an entry in entries where the key is the traditional character
-        # and the value is the entry where we populate c_s as the simpVariant and c_t as the traditional character
-        # If there already exists a key in entries for the traditional character, it means that we processed the simplified character first
-
-        # We could also not combine the data? idk
-        # or maybe we can basically create a variants dictionary
-
-        # The issue is that a simplified character can have multiple traditional variants and vice versa
-
-        # if "tradVariants" in data:
-        #     for tradVariant in data["tradVariants"]:
-        #         if tradVariant in entries:
-        #             entries[tradVariant]["c_t"] = tradVariant
-        #             entries[tradVariant]["c_g"] = data.get("gloss", "")
-        #             entries[tradVariant]["c_s"] = data["char"]
-        #             entries[tradVariant]["c_p"] = (
-        #                 [d["pinyin"] for d in data["pinyinFrequencies"]]
-        #                 if "pinyinFrequencies" in data
-        #                 else []
-        #             )
-        #         else:
-        #             entries[tradVariant] = {
-        #                 "c_s": data["char"],
-        #                 "c_t": tradVariant,
-        #                 "c_g": data.get("gloss", ""),
-        #                 "c_p": (
-        #                     [d["pinyin"] for d in data["pinyinFrequencies"]]
-        #                     if "pinyinFrequencies" in data
-        #                     else []
-        #                 ),
-        #             }
-
-        # if "variants" in data:
-        #     # for each variant, check if it is in entries
-        #     # if it is, then update the entry
-        #     # if it is not, then create a new entry
-        #     for variant in data["variants"]:
-
-        # if data["char"] in entries:
-        #     print(data["char"])
-        #     entries[data["char"]]["c_s"] = data.get("simpVariants", [])
-        #     entries[data["char"]]["c_t"] = data.get("tradVariants", [])
-        #     entries[data["char"]]["c_g"] = data.get("gloss", "")
-        #     entries[data["char"]]["c_p"] = (
-        #         [d["pinyin"] for d in data["pinyinFrequencies"]]
-        #         if "pinyinFrequencies" in data
-        #         else []
-        #     )
-
-        # else:
-        #     entries[data["char"]] = {
-        #         "c_s": data.get("simpVariants", []),
-        #         "c_t": data.get("tradVariants", []),
-        #         "c_g": data.get("gloss", ""),
-        #         "c_p": [d["pinyin"] for d in data["pinyinFrequencies"]]
-        #         if "pinyinFrequencies" in data
-        #         else [],
-        #     }
-
-        # c_t
-        # c_g = ""
-        # c_s = []
-        # c_d = []
 
 for char, data in char_mapping.items():
     if "tradVariants" not in data:
@@ -231,10 +161,11 @@ for char, data in char_mapping.items():
         for variant in data.get("simpVariants", []):
             if variant in entries:
                 # Add the pronunciations of the simpVariant
+                # TODO: check if there are any "" glosses
                 glosses.append(entries[variant].get("gloss", ""))
 
         cv = list(
-            filter(lambda x: x != char, [v["char"]
+            filter(lambda x: x != char and x != "" and x != None, [v["char"]
                    for v in data.get("variants", [])])
         )
 
@@ -243,67 +174,25 @@ for char, data in char_mapping.items():
             entries[char]["c_t"] = char
             if "simpVariants" in data:
                 entries[char]["c_s"] = data["simpVariants"]
-            if len(glosses) > 1:
-                entries[char]["c_g"] = glosses
+            if len(glosses):
+                entries[char]["c_g"] = '; '.join(glosses)
             if list(set_of_pinyin):
-                entries[char]["c_p"] = list(set_of_pinyin)
+                entries[char]["c_p"] = ', '.join(list(set_of_pinyin))
             if cv:
-                entries[char]["c_v"] = cv
+                entries[char]["c_v"] = ', '.join(cv)
         else:
             obj = {
                 "c_t": char,
             }
             if "simpVariants" in data:
                 obj["c_s"] = data["simpVariants"]
-            if len(glosses) > 1:
-                obj["c_g"] = glosses
+            if len(glosses):
+                obj["c_g"] = '; '.join(glosses)
             if list(set_of_pinyin):
-                obj["c_p"] = list(set_of_pinyin)
+                obj["c_p"] = ', '.join(list(set_of_pinyin))
             if cv:
-                obj["c_v"] = cv
+                obj["c_v"] = ', '.join(cv)
             entries[char] = obj
-
-# # we will add the jp data in the following way:
-# # go through index.json, if jp char is in entries, add
-
-# jp_index_path = 'jp/output/index_min.json'
-# jmdict_path = 'jp/output/jmdict_min.json'
-# jmnedict_path = 'jp/output/jmnedict_min.json'
-
-# j2ch_path = "j2ch.json"
-
-# with open(jp_index_path, 'r', encoding='utf-8') as file:
-#     jp_index = json.load(file)
-
-#     with open(jmdict_path, 'r', encoding='utf-8') as file:
-#         jmdict = json.load(file)
-
-#         with open(jmnedict_path, 'r', encoding='utf-8') as file:
-#             jmnedict = json.load(file)
-
-#             with open(j2ch_path, 'r', encoding='utf-8') as file:
-#                 j2ch = json.load(file)
-
-#                 for word, index_data in jp_index.items():
-
-#                     for w in j2ch.get(word, [word]):
-
-#                         if w in entries:
-
-#                             entries[w]['j'] = [
-#                                 jmdict[str(j)] for j in index_data.get('j', [])]
-
-#                             entries[w]['n'] = [
-#                                 jmnedict[str(j)] for j in index_data.get('n', [])]
-
-#                             if 'k' in index_data:
-#                                 entries[w]['k'] = index_data['k']
-#                         else:
-#                             entries[w] = {
-#                                 **({'j': [jmdict[str(j)] for j in index_data.get('j', [])]} if 'j' in index_data else {}),
-#                                 **({'n': [jmnedict[str(j)] for j in index_data.get('n', [])]} if 'n' in index_data else {}),
-#                                 **({'k': index_data['k']} if 'k' in index_data else {}),
-#                             }
 
 
 def cartesian_product(lists):
@@ -494,28 +383,127 @@ for index, entry in enumerate(jmdict_data):
             elif matched_entries['non_variant']:
                 trueKey = matched_entries['non_variant'][0]
             elif matched_entries['same_simplified']:
-                trueKey = matched_entries
-
+                trueKey = matched_entries['same_simplified']
+            elif matched_entries['generic']:
+                trueKey = matched_entries['generic']
+            else:
+                trueKey = key
         else:
             trueKey = exceptions[key]
 
+    print(trueKey)
 
-# with open('jp/jmdict-index.json', 'r', encoding='utf-8') as file:
-#     jmdict_index = json.load(file)
-# with open('jp/jmdict-entries.json', 'r', encoding='utf-8') as file:
-#     jmdict_entries = json.load(file)
+    # At this point hopefully you have the true key
 
-# key = '悪心'
+    entries[trueKey].setdefault('j', []).append(
+        {
+            **(
+                {
+                    "k": [
+                        {
+                            **({"c": True} if kanji["common"] else {}),
+                            **({"t": kanji["text"]} if kanji["text"] else {}),
+                            **({"g": kanji["tags"]} if len(kanji["tags"]) else {}),
+                        }
+                        for kanji in entry["kanji"]
+                    ]
+                }
+                if entry["kanji"]
+                else {}
+            ),
+            **(
+                {
+                    "r": [
+                        {
+                            **({"c": True} if kana["common"] else {}),
+                            **({"t": kana["text"]} if kana["text"] else {}),
+                            **({"g": kana["tags"]} if len(kana["tags"]) else {}),
+                            **({"a": kana["appliesToKanji"]} if kana["appliesToKanji"] != ["*"] else {}),
+                            **({"r":  romkan.to_roma(kana["text"])} if kana["text"] else {})
+                        }
+                        for kana in entry["kana"]
+                    ]
+                }
+                if entry["kana"]
+                else {}
+            ),
+            **({
+                "s": [
+                    {
+                        **({"n": list(map(lambda inner: list(map(str, inner)), sense["antonym"]))} if len(sense["antonym"]) else {}),
+                        **({"k": sense["appliesToKana"]} if sense["appliesToKana"] != ["*"] else {}),
+                        **({"a": sense["appliesToKanji"]} if sense["appliesToKanji"] != ["*"] else {}),
+                        **({"d": sense["dialect"]} if len(sense["dialect"]) else {}),
+                        **({"f": sense["field"]} if len(sense["field"]) else {}),
+                        "g": [
+                            {
+                                **({"g": gloss["gender"]} if gloss["gender"] else {}),
+                                **({"y": gloss["type"]} if gloss["type"] else {}),
+                                **({"t": gloss["text"]} if gloss["text"] else {}),
+                            }
+                            for gloss in sense["gloss"]
+                        ]
+                        if "gloss" in sense else [],
+                        ** ({"i": sense["info"]} if len(sense["info"]) else {}),
+                        **({"l": sense["languageSource"]} if len(sense["languageSource"]) else {}),
+                        **({"m": sense["misc"]} if len(sense["misc"]) else {}),
+                        **({"p": sense["partOfSpeech"]} if len(sense["partOfSpeech"]) else {}),
+                        **({"r": list(map(lambda inner: list(map(str, inner)), sense["related"]))
+                            } if len(sense["related"]) else {}),
+                    }
+                    for sense in entry["sense"]
+                ]
+            }
+                if entry["sense"]
+                else {}
+            ),
+        }
+    )
 
-# for index in jmdict_index[key]:
+file_path = "jp/kanjidic2-en-3.5.0.json"
+with open(file_path, "r", encoding="utf-8") as file:
+    kanjidic_data = json.load(file)["characters"]
 
-#     # Generate combinations and filter entries
-#     combinations = generate_combinations(key, j2ch)
-#     matched_entries = filter_entries(
-#         combinations, entries, key, jmdict_entries[index])
+    for entry in kanjidic_data:
+        # they are all unique, so can just add straight to the index
 
-#     # Print results based on matches
-#     print_results(matched_entries, key)
+        zh_variants = []
+        if entry['literal'] in j2ch:
+            zh_variants = j2ch[entry['literal']]
+
+        e = {
+            "k": entry['literal'],
+            "m": {
+
+                **({"m": [meaning['value'] for meaning in entry['readingMeaning']['groups'][0]['meanings']]} if len(entry['readingMeaning']['groups'][0]['meanings']) else {}),
+                # **({"k": [reading['value'] for reading in group['readings'] if reading['type'] == "ja_kun"]} if len([r for r in group['readings'] if r['type'] == "ja_kun"]) else {}),
+                # **({"o": [reading['value'] for reading in group['readings'] if reading['type'] == "ja_on"]} if len([r for r in group['readings'] if r['type'] == "ja_on"]) else {}),
+
+                # k: kunyomis
+                # o: onyomis
+                **({
+                    key: [reading['value'] for reading in entry['readingMeaning']['groups'][0]['readings']
+                          if reading['type'] == reading_type]
+                    for reading_type, key in (("ja_kun", "k"), ("ja_on", "o"))
+                    if any(reading['type'] == reading_type for reading in entry['readingMeaning']['groups'][0]['readings'])
+                }),
+                # "r": [
+                #     {
+                #         "t": "o" if reading['type'] == "ja_on" else "k", # we only need onyomis and kunyomis for the search page
+                #         "v": reading['value'],
+                #     } for reading in group['readings'] if (reading['type'] == "ja_on" or reading['type'] == "ja_kun")
+                # ]
+
+                **({"n": entry['readingMeaning']['nanori']} if len(entry['readingMeaning']['nanori']) else {}),
+            },
+            **({"v": zh_variants} if len(zh_variants) else {})
+        }
+
+        entries[entry["literal"]]['k'] = e
+
+        # for the chinese equivalents of
+        for variant in zh_variants:
+            entries[variant].setdefault('v', []).append(e)
 
 
 # ok now time to try the jmnedict
@@ -546,23 +534,94 @@ with open(file_path, "r", encoding="utf-8") as file:
         #     print("区画")
         #     print(key)
 
-        if key in entries:
-            # Skip if there's an exact match
-            continue
-
         # if key != '悪心':
         #     continue
 
         # Generate combinations and filter entries
-        if (key not in exceptions):
-            combinations = generate_combinations(key, j2ch)
-            matched_entries = filter_entries(combinations, entries, key, entry)
+        # if (key not in exceptions):
+        #     combinations = generate_combinations(key, j2ch)
+        #     matched_entries = filter_entries(combinations, entries, key, entry)
 
-            # Print results based on matches
-            print_results(matched_entries, entry, key)
+        #     # Print results based on matches
+        #     print_results(matched_entries, entry, key)
+        # else:
+        #     trueKey = exceptions[key]
+        if key in entries:
+            # Skip if there's an exact match
+            trueKey = key
         else:
-            trueKey = exceptions[key]
+            # Generate combinations and filter entries
+            if (key not in exceptions):
+                combinations = generate_combinations(key, j2ch)
+                matched_entries = filter_entries(
+                    combinations, entries, key, entry)
 
-with open("all_data2.jsonl", "w", encoding="utf-8") as file:
-    for entry in entries.values():
+                # Print results based on matches
+                # print_results(matched_entries, entry, key)
+
+                # based on the matched results, choose a key:
+                if matched_entries['same_definition']:
+                    trueKey = matched_entries['same_definition'][0]
+                elif matched_entries['non_variant']:
+                    trueKey = matched_entries['non_variant'][0]
+                elif matched_entries['same_simplified']:
+                    trueKey = matched_entries['same_simplified']
+                elif matched_entries['generic']:
+                    trueKey = matched_entries['generic']
+                else:
+                    trueKey = key
+            else:
+                trueKey = exceptions[key]
+
+        print(trueKey)
+
+        entries[trueKey].setdefault('n', []).append({
+            **(
+                {
+                    "r": [
+                        {
+                            **({"a": kana["appliesToKanji"]} if kana["appliesToKanji"] != ["*"] else {}),
+                            **({"g": kana["tags"]} if len(kana["tags"]) else {}),
+                            **({"t": kana["text"]} if kana["text"] else {}),
+                            **({"r":  romkan.to_roma(kana["text"])} if kana["text"] else {})
+                        }
+                        for kana in entry["kana"]
+                    ]
+                }
+                if entry["kana"]
+                else {}
+            ),
+            **(
+                {
+                    "k": [
+                        {
+                            **({"g": kanji["tags"]} if len(kanji["tags"]) else {}),
+                            **({"t": kanji["text"]} if kanji["text"] else {}),
+                        }
+                        for kanji in entry["kanji"]
+                    ]
+                }
+                if entry["kanji"]
+                else {}
+            ),
+            **({
+                "t": [
+                    {
+                        **({'r': list(map(lambda inner: list(map(str, inner)), translation["related"]))
+                            } if len(translation['related']) else {}),
+                        **({'t': [
+                            t['text']
+                            for t in translation['translation']
+                        ]} if len(translation['translation']) else {}),
+                        **({'y': translation['type']} if translation['type'] else {})
+                    }
+                    for translation in entry['translation']
+                ]
+                if entry['translation'] else {}
+            })
+        })
+
+with open("all_data.jsonl", "w", encoding="utf-8") as file:
+    for key, entry in entries.items():
+        entry["e"] = key
         file.write(json.dumps(entry, ensure_ascii=False) + "\n")
