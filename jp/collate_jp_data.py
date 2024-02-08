@@ -16,7 +16,10 @@ import json
 import sys
 from collections import defaultdict
 import os
+# import pykakasi
 
+# kks = pykakasi.kakasi()
+import romkan
 
 file_path = "jmdict-eng-3.5.0.json"
 
@@ -85,6 +88,7 @@ with open(file_path, "r", encoding="utf-8") as file:
                             **({"t": kana["text"]} if kana["text"] else {}),
                             **({"g": kana["tags"]} if len(kana["tags"]) else {}),
                             **({"a": kana["appliesToKanji"]} if kana["appliesToKanji"] != ["*"] else {}),
+                            **({"r": ''.join(i['hepburn'] for i in romkan.to_roma(kana["text"]))} if kana["text"] else {})
                         }
                         for kana in entry["kana"]
                     ]
@@ -185,6 +189,7 @@ with open(file_path, "r", encoding="utf-8") as file:
                             **({"a": kana["appliesToKanji"]} if kana["appliesToKanji"] != ["*"] else {}),
                             **({"g": kana["tags"]} if len(kana["tags"]) else {}),
                             **({"t": kana["text"]} if kana["text"] else {}),
+                            **({"r": ''.join(i['hepburn'] for i in romkan.to_roma(kana["text"]))} if kana["text"] else {})
                         }
                         for kana in entry["kana"]
                     ]

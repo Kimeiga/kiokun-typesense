@@ -20,72 +20,76 @@ const util = require('util');
 	})
 
 
-	await client.collections('dictionary').delete()
-		.then(response => {
-			console.log("Collection deleted:", response);
-		})
-		.catch(error => {
-			console.error("Error deleting collection:", error);
-		});
+	// await client.collections('dictionary').delete()
+	// 	.then(response => {
+	// 		console.log("Collection deleted:", response);
+	// 	})
+	// 	.catch(error => {
+	// 		console.error("Error deleting collection:", error);
+	// 	});
 
 
+	// // let schema = {
+	// // 	"name": "dictionary",
+	// // 	"enable_nested_fields": true,
+	// // 	"fields": [
+	// // 		{ "name": "w_s", "type": "string", "infix": true },
+	// // 		{ "name": "w_t", "type": "string", "infix": true },
+	// // 		{ "name": "w_p", "type": "string[]", "infix": true },
+	// // 		{ "name": "w_d", "type": "string[]", "infix": true }
+	// // 	]
+	// // }
 	// let schema = {
 	// 	"name": "dictionary",
 	// 	"enable_nested_fields": true,
 	// 	"fields": [
-	// 		{ "name": "w_s", "type": "string", "infix": true },
-	// 		{ "name": "w_t", "type": "string", "infix": true },
-	// 		{ "name": "w_p", "type": "string[]", "infix": true },
-	// 		{ "name": "w_d", "type": "string[]", "infix": true }
+	// 		{ "name": "w_s", "type": "string", "infix": true, "optional": true },
+	// 		{ "name": "w_t", "type": "string", "infix": true, "optional": true },
+	// 		{ "name": "w_p", "type": "string[]", "infix": true, "optional": true },
+	// 		{ "name": "w_d", "type": "string[]", "infix": true, "optional": true },
+	// 		{ "name": "c_t", "type": "string", "infix": true, "optional": true }, // Traditional character
+	// 		{ "name": "c_s", "type": "string[]", "infix": true, "optional": true }, // Simplified variants
+	// 		{ "name": "c_g", "type": "string[]", "infix": true, "optional": true }, // Glosses
+	// 		{ "name": "c_p", "type": "string[]", "infix": true, "optional": true }, // Pinyin
+	// 		{ "name": "c_v", "type": "string[]", "infix": true, "optional": true }  // Other variants
 	// 	]
 	// }
-	let schema = {
-		"name": "dictionary",
-		"enable_nested_fields": true,
-		"fields": [
-			{ "name": "w_s", "type": "string", "infix": true, "optional": true },
-			{ "name": "w_t", "type": "string", "infix": true, "optional": true },
-			{ "name": "w_p", "type": "string[]", "infix": true, "optional": true },
-			{ "name": "w_d", "type": "string[]", "infix": true, "optional": true },
-			{ "name": "c_t", "type": "string", "infix": true, "optional": true }, // Traditional character
-			{ "name": "c_s", "type": "string[]", "infix": true, "optional": true }, // Simplified variants
-			{ "name": "c_g", "type": "string[]", "infix": true, "optional": true }, // Glosses
-			{ "name": "c_p", "type": "string[]", "infix": true, "optional": true }, // Pinyin
-			{ "name": "c_v", "type": "string[]", "infix": true, "optional": true }  // Other variants
-		]
-	}
 
-	await client.collections().create(schema)
-		.then(response => {
-			console.log("Collection created:", response);
-		})
-		.catch(error => {
-			console.error("Error creating collection:", error);
-		});
+	// await client.collections().create(schema)
+	// 	.then(response => {
+	// 		console.log("Collection created:", response);
+	// 	})
+	// 	.catch(error => {
+	// 		console.error("Error creating collection:", error);
+	// 	});
 
-	var fs = require('fs/promises');
+	// var fs = require('fs/promises');
 
-	const data = await fs.readFile("all_data.jsonl");
-	// // client.collections('cedict').documents().import(cedictData);
+	// const data = await fs.readFile("all_data.jsonl");
+	// // // client.collections('cedict').documents().import(cedictData);
 
-	// // Example: Assuming 'documents' is your array of documents
-	// // cedictData.forEach(document => {
-	// // 	document.d = document.d.join("/");
-	// // });
+	// // // Example: Assuming 'documents' is your array of documents
+	// // // cedictData.forEach(document => {
+	// // // 	document.d = document.d.join("/");
+	// // // });
 
-	// Now import these documents into Typesense
-	await client.collections('dictionary').documents().import(data)
-		.then(response => {
-			console.log("Documents imported:", response);
-		})
-		.catch(error => {
-			console.error("Error importing documents:", error);
-		});
+	// // Now import these documents into Typesense
+	// await client.collections('dictionary').documents().import(data)
+	// 	.then(response => {
+	// 		console.log("Documents imported:", response);
+	// 	})
+	// 	.catch(error => {
+	// 		console.error("Error importing documents:", error);
+	// 	});
 
+	const args = process.argv.slice(2)
+
+	const inspect = (s) => console.log(util.inspect(s, { showHidden: false, depth: null, colors: true }));
 
 	let searchParameters = {
-		'q': '汉',
-		'query_by': '*',
+		'q': args[0],
+		'query_by': 'w_s, w_t, w_p, w_d, c_t, c_v, c_s, c_g, c_p, k, v, j, n',
+		"query_by_weights": '4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 1',
 		// 50 per page
 		'per_page': 50,
 		'infix': 'always'
@@ -95,14 +99,14 @@ const util = require('util');
 		.search(searchParameters)
 		.then(function (searchResults) {
 			for (const result of searchResults.hits) {
-				console.log(result.document);
+				inspect(result.document);
 			}
-			console.log(searchResults.found)
-			console.log(searchResults.hits[0].document);
-			console.log(searchResults.hits[1].document);
-			console.log(searchResults.hits[2].document);
+			inspect(searchResults.found)
+			// inspect(searchResults.hits[0].document);
+			// inspect(searchResults.hits[1].document);
+			// inspect(searchResults.hits[2].document);
 
-			// console.log(util.inspect(searchResults, { showHidden: false, depth: null, colors: true }));
+			// inspect(searchResults)
 		});
 
 
