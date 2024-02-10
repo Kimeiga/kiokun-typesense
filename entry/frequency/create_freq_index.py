@@ -32,40 +32,40 @@ for i, word in enumerate(extracted_words):
     words[word] = {"pronunciation":  extracted_word_pronunciations[i],
                    "freq": int(extracted_word_freqs[i])}
 
-# duplicates = [
-#     word for word in extracted_words if extracted_words.count(word) > 1]
-# print(duplicates)
+duplicates = [
+    word for word in extracted_words if extracted_words.count(word) > 1]
+print(duplicates)
 
 
-# print(len(extracted_words) == len(set(extracted_words)))
-# print(len(extracted_words) == len(set(extracted_words)))
+print(len(extracted_words) == len(set(extracted_words)))
+print(len(extracted_words) == len(set(extracted_words)))
 
-# # print(extracted_words)
-# # print(extracted_word_freqs)
+# print(extracted_words)
+# print(extracted_word_freqs)
 
-# longest = ''
-# longest_len = 0
+longest = ''
+longest_len = 0
 
-# for i, word in enumerate(extracted_words):
-#     if word in index:
-#         index[word]['f'] = int(extracted_word_freqs[i])
+for i, word in enumerate(extracted_words):
+    if word in index:
+        index[word]['f'] = int(extracted_word_freqs[i])
 
-# for i in index:
-#     if 'c_w' in index[i] and 'j_w' in index[i] and len(index[i]['c_w']) > 0 and len(index[i]['j_w']) > 0:
-#         # mark ones that are in both languages
-#         index[i]['i'] = 1
+for i in index:
+    if 'c_w' in index[i] and 'j_w' in index[i] and len(index[i]['c_w']) > 0 and len(index[i]['j_w']) > 0:
+        # mark ones that are in both languages
+        index[i]['i'] = 1
 
-#         if len(i) > longest_len:
-#             longest = i
-#             longest_len = len(i)
-#     else:
-#         index[i]['i'] = 0
+        if len(i) > longest_len:
+            longest = i
+            longest_len = len(i)
+    else:
+        index[i]['i'] = 0
 
-# print(longest, longest_len)
+print(longest, longest_len)
 
-# with open("index_key_search.jsonl", "w", encoding="utf-8") as file:
-#     for i, entry in index.items():
-#         file.write(json.dumps({'w': i, 'i': entry['i'], 'f': (
-#             entry['f'] if 'f' in entry else 0)}, ensure_ascii=False) + "\n")
-#     # json.dump([{'w': i} for i in index.keys()],
-#         #   file, ensure_ascii=False, indent=2)
+with open("index_key_search.jsonl", "w", encoding="utf-8") as file:
+    for i, entry in index.items():
+        file.write(json.dumps({'w': i, 'i': entry['i'], 'f': (
+            entry['f'] if 'f' in entry else 0)}, ensure_ascii=False) + "\n")
+    # json.dump([{'w': i} for i in index.keys()],
+        #   file, ensure_ascii=False, indent=2)

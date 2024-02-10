@@ -1,6 +1,7 @@
 import json
 import typesense
 
+
 client = typesense.Client({
     'nodes': [{
         'host': 'localhost',  # For Typesense Cloud use xxx.a1.typesense.net
@@ -87,7 +88,7 @@ def get_words_with_kanji(word):
 
 
 def test():
-    deduplicated_words = get_words_with_kanji('水')
+    deduplicated_words = get_words_with_kanji('図')
     print(json.dumps(deduplicated_words, ensure_ascii=False, indent=4, sort_keys=True))
     print(len(deduplicated_words))
 

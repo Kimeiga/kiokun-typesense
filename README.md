@@ -18,3 +18,16 @@ feed that to typesense to generate index
 using typesense.js, uncomment relevant lines
 
 (you can also make sure that it's working by commenting out the setup lines and uncommenting the search lines at the bottom of that file and running it)
+
+
+to create entries data, run 
+pyenv activate romkan-env
+cd entry
+python create_entries_data
+
+TODO: make a requirements.txt or something
+
+to create search data, run 
+cd search
+python create_search_data
+./import_to_typesense

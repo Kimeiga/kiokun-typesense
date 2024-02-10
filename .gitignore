@@ -60,3 +60,7 @@ output/search_data_min.json
 output/search_data.json
 output/search_data_min.jsonl
 package-lock.json
+entry/__pycache__
+entry/frequency/__pycache__
+entry/frequency/bccwj/BCCWJ_frequencylist_luw2_ver1_0.tsv
+entry/frequency/bccwj/bccwj.json
